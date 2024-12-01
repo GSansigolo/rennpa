@@ -7,17 +7,7 @@
 
 <!-- badges: start -->
 
-[![Software License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/brazil-data-cube/rennpa/blob/master/LICENSE)
-
-[![Documentation Status](https://readthedocs.org/projects/rennpa/badge/?version=latest)](https://rennpa.readthedocs.io/en/latest/)
-
-[![Software Life Cycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable)
-
-[![Release](https://img.shields.io/github/tag/brazil-data-cube/rennpa.svg)](https://github.com/brazil-data-cube/rennpa/releases)
-
-[![Python Package Index](https://img.shields.io/pypi/v/rennpa)](https://pypi.org/project/rennpa/)
-
-[![Join us at Discord](https://img.shields.io/discord/689541907621085198?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/channels/689541907621085198#)
+[![Software License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/brazil-data-cube/rennpa/blob/master/LICENSE) [![Documentation Status](https://readthedocs.org/projects/rennpa/badge/?version=latest)](https://rennpa.readthedocs.io/en/latest/) [![Software Life Cycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) [![Release](https://img.shields.io/github/tag/brazil-data-cube/rennpa.svg)](https://github.com/brazil-data-cube/rennpa/releases) [![Python Package Index](https://img.shields.io/pypi/v/rennpa)](https://pypi.org/project/rennpa/) [![Join us at Discord](https://img.shields.io/discord/689541907621085198?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/channels/689541907621085198#)
 
 <!-- badges: end -->
 
