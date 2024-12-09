@@ -10,9 +10,17 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from torcheval.metrics.functional import multiclass_f1_score
 from tqdm import tqdm
 from sklearn import metrics
 import matplotlib.pyplot as plt
+import geopandas as gpd
+from shapely import Point, within
+import pyproj
+from geopandas import GeoSeries
+import xarray as xr
+
+BDC_PROJ = 'PROJCS["unknown",GEOGCS["unknown",DATUM["Unknown based on GRS80 ellipsoid",SPHEROID["GRS 1980",6378137,298.257222101,AUTHORITY["EPSG","7019"]]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]]],PROJECTION["Albers_Conic_Equal_Area"],PARAMETER["latitude_of_center",-12],PARAMETER["longitude_of_center",-54],PARAMETER["standard_parallel_1",-2],PARAMETER["standard_parallel_2",-22],PARAMETER["false_easting",5000000],PARAMETER["false_northing",10000000],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH]]'
 
 def shuffle_data (input, output):
     # Open the input CSV file for reading
@@ -311,7 +319,7 @@ def rennpa_validade(model, sample):
         prediction = prediction.indices.item()
         print("Predicted Label:", prediction)
 
-def rennpa_accuracy(model, val_ds):
+def rennpa_accuracy(model, val_ds, num_classes):
     predictions_list = []
     correct_list = []
     correct_count = 0
@@ -323,8 +331,10 @@ def rennpa_accuracy(model, val_ds):
         correct_list.append(val_ds[s][1].item())
         if prediction == val_ds[s][1].item():
             correct_count+=1
-    acc_sc = (correct_count)/len(val_ds)*100
-    print('Accuracy is %s' % acc_sc)
+    input = torch.tensor(predictions_list)
+    target = torch.tensor(correct_list)
+    f1_score = multiclass_f1_score(input, target, num_classes=num_classes)
+    print('F1 Score is %s' % f1_score)
 
 def rennpa_open_ts_json(input):
     with open(input) as f:
@@ -353,3 +363,174 @@ def rennpa_confusion_matrix(model, val_ds):
     cm_display.plot()
     #plt.xticks(rotation=90)
     plt.show() 
+
+def rennpa_get_pixels_from_polygon(p):
+    minx, miny, maxx, maxy = p.bounds
+    x1, y1 = pyproj.transform(pyproj.CRS.from_epsg(4326), pyproj.CRS.from_wkt(BDC_PROJ), minx, miny, always_xy=True)
+    x2, y2 = pyproj.transform(pyproj.CRS.from_epsg(4326), pyproj.CRS.from_wkt(BDC_PROJ), maxx, maxy, always_xy=True)
+    nx = int((x2-x1)/10)
+    ny = int((y2-y1)/10)
+    x = np.linspace(minx, maxx, nx)
+    y = np.linspace(miny, maxy, ny)
+    meshgrid = np.meshgrid(x, y)
+    list_x = []
+    list_y = []
+    for col in meshgrid[0]:
+        for item in col:
+            list_x.append(item)
+    for col in meshgrid[1]:
+        for item in col:
+            list_y.append(item)
+
+    pts = [Point(X,Y) for X,Y in zip(list_x, list_y)]
+    points = [pt for pt in pts if within(pt, p)]
+    return np.array([[pt.x,pt.y] for pt in points])
+
+def rennpa_get_pixels_from_bounds(p):
+    minx, miny, maxx, maxy = p.bounds
+    x1, y1 = pyproj.transform(pyproj.CRS.from_epsg(4326), pyproj.CRS.from_wkt(BDC_PROJ), minx, miny, always_xy=True)
+    x2, y2 = pyproj.transform(pyproj.CRS.from_epsg(4326), pyproj.CRS.from_wkt(BDC_PROJ), maxx, maxy, always_xy=True)
+    nx = int((x2-x1)/10)
+    ny = int((y2-y1)/10)
+    x = np.linspace(minx, maxx, nx)
+    y = np.linspace(miny, maxy, ny)
+    meshgrid = np.meshgrid(x, y)
+    list_x = []
+    list_y = []
+    for col in meshgrid[0]:
+        for item in col:
+            list_x.append(item)
+    for col in meshgrid[1]:
+        for item in col:
+            list_y.append(item)
+
+    return np.array([(x,y) for x,y in zip(list_x, list_y)])
+
+def rennpa_plot_pts_region(polygon, points):
+    x, y = [],[]
+    for p in points:
+        x.append(p[0])
+        y.append(p[1])
+    gpd.GeoSeries(polygon).plot(color='red', alpha=0.25)
+    plt.scatter(x,y) 
+    plt.show() 
+
+def get_ts(cube, geom, attribute):
+
+    url_wtss = 'https://data.inpe.br/bdc/wtss/v4'
+
+    for point in geom:
+        query = dict(
+            coverage=cube['collection'],
+            attributes=attribute,
+            start_date=cube['start_date'],
+            end_date=cube['end_date'],
+            latitude=point['coordinates'][1],
+            longitude=point['coordinates'][0],
+        )
+        url_suffix = '/time_series?'+urllib.parse.urlencode(query)
+        data = requests.get(url_wtss + url_suffix) 
+        data_json = data.json()
+        if data.status_code:
+            try:
+                ts = data_json['result']['attributes'][0]['values']
+                timeline = data_json['result']['timeline']
+            except:
+                ts = []
+                timeline = []
+        else:
+            ts = []
+            timeline = []
+        return dict(values=ts, timeline=timeline)
+    
+def rennpa_classify(cube, points, region, model):
+
+    GEOM = []
+    B02 = []
+    B03 = []
+    B04 = []
+    B08 = []
+    NDVI = []
+    OSAVI = []
+    NDWI = []
+    RECI = []
+    label = []
+
+    for input in tqdm(points):
+        attributes = ["B02", "B03", "B04", "B08", "EVI", "NBR", "NDVI"]
+        tss = {}
+
+        for attribute in attributes:
+
+            # Get time series 
+            ts = get_ts(
+                cube=cube, 
+                geom=[dict(coordinates = input)],
+                attribute=attribute
+            )
+
+            tss[attribute] = ts['values']
+            
+        GEOM.append(Point(input))
+        B02.append(tss["B02"])
+        B03.append(tss["B03"])
+        B04.append(tss["B04"])
+        B08.append(tss["B08"])
+        NDVI.append(tss["NDVI"])  
+        osavi = np.divide((np.subtract(tss["B08"],tss["B04"])),(np.add(np.add(tss["B08"],tss["B04"]),[0.16]*23)))
+        OSAVI.append(osavi.tolist())
+        ndwi = np.divide((np.subtract(tss["B03"],tss["B08"])),(np.add(tss["B03"],tss["B08"])))
+        NDWI.append(ndwi.tolist())
+        reci = np.divide(tss["B08"],(np.add(tss["B04"],[1]*23)))
+        RECI.append(reci.tolist())
+        label.append(0)
+        
+    gleba_df = pd.DataFrame({"GEOM":GEOM,"B02":B02,"B03":B03,"B04":B04,"B08":B08,"NDVI":NDVI,"OSAVI":OSAVI,"NDWI":NDWI, "RECI": RECI, "label": label})
+    
+    gleba_ds = TimeseriesDataset(gleba_df) 
+
+    geoms = []
+    labels_id = []
+    labels_titles = []
+
+    for s in tqdm(range(len(gleba_ds))): 
+        prediction = torch.max(torch.sigmoid(model(gleba_ds[s][0].unsqueeze(dim=0))), -1)
+        prediction = prediction.indices.item()
+        geoms.append(str(gleba_df.loc[s,"GEOM"]))
+        labels_id.append(prediction)
+
+    for p in tqdm(region):
+        wkt = 'POINT ('+str(p[0])+' '+str(p[1])+')'
+        if(wkt not in geoms):
+            geoms.append(wkt)
+            labels_id.append(-9999)
+            labels_titles.append("no data")
+
+    result_df = pd.DataFrame({"geometry":geoms,"label_id":labels_id})
+
+    points = gpd.GeoSeries.from_wkt(result_df.geometry)
+    classification = gpd.GeoDataFrame(data=result_df, geometry=points, crs={"init": "epsg:4326"})
+    
+    classification['label_id'] = [9 if i ==-9999 else i for i in classification['label_id']]
+    classification['x'] = classification['geometry'].x
+    classification['y'] = classification['geometry'].y
+    classification = classification.rename(columns={'label_id': 'band_data'})
+    classification = classification.drop("geometry", axis=1)
+    classification = classification.set_index(['x', 'y'])
+    xr_classification = classification.to_xarray()  
+    xr_classification = xr_classification.assign_coords(time='2023')
+    xr_classification = xr_classification.expand_dims('time')
+    xr_classification = xr_classification.assign_coords(band=1)
+    xr_classification = xr_classification.expand_dims('band')
+
+    return xr_classification
+
+def rennpa_plot_classification(xr_classification):
+
+    cube_classification = xr_classification['band_data']
+
+    cube_classification.plot(cmap="tab20")
+
+def rennpa_save(model, output):
+
+    torch.save(model.state_dict(), output)

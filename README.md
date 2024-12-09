@@ -13,7 +13,7 @@
 
 ## Overview
 
-**RENNPA** or **RE**current **N**eural **N**etwork **P**ython **A**PI, is an Python package with a RNN ready for satellite image time series classification. 
+**rennpa**: **RE**current **N**eural **N**etwork **P**ython **A**PI, is an Python package with a RNN ready for satellite image time series classification. 
 The package
 implements a number of functions to assist the proccess of production of land use and land cover maps based on time series, all based on the Brazil Data Cube image catalog.
 
