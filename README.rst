@@ -22,7 +22,7 @@ rennpa - REcurrent Neural Network Python API
 
 
 .. image:: https://img.shields.io/badge/License-GPLv3-blue.svg
-        :target: https://github.com/brazil-data-cube/rennpa/blob/master/LICENSE
+        :target: https://github.com/GSansigolo/rennpa/blob/master/LICENSE
         :alt: Software License
 
 
@@ -36,8 +36,8 @@ rennpa - REcurrent Neural Network Python API
         :alt: Software Life Cycle
 
 
-.. image:: https://img.shields.io/github/tag/brazil-data-cube/rennpa.svg
-        :target: https://github.com/brazil-data-cube/rennpa/releases
+.. image:: https://img.shields.io/github/tag/GSansigolo/rennpa.svg
+        :target: https://github.com/GSansigolo/rennpa/releases
         :alt: Release
 
 

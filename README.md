@@ -7,7 +7,7 @@
 
 <!-- badges: start -->
 
-[![Software License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/brazil-data-cube/rennpa/blob/master/LICENSE) [![Documentation Status](https://readthedocs.org/projects/rennpa/badge/?version=latest)](https://rennpa.readthedocs.io/en/latest/) [![Software Life Cycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) [![Release](https://img.shields.io/github/tag/brazil-data-cube/rennpa.svg)](https://github.com/brazil-data-cube/rennpa/releases) [![Python Package Index](https://img.shields.io/pypi/v/rennpa)](https://pypi.org/project/rennpa/) 
+[![Software License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/GSansigolo/rennpa/blob/master/LICENSE) [![Documentation Status](https://readthedocs.org/projects/rennpa/badge/?version=latest)](https://rennpa.readthedocs.io/en/latest/) [![Software Life Cycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) [![Release](https://img.shields.io/github/tag/GSansigolo/rennpa.svg)](https://github.com/GSansigolo/rennpa/releases) [![Python Package Index](https://img.shields.io/pypi/v/rennpa)](https://pypi.org/project/rennpa/) 
 
 <!-- badges: end -->
 
