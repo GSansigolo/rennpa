@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torcheval.metrics.functional import multiclass_f1_score
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 from sklearn import metrics
 import matplotlib.pyplot as plt
 import geopandas as gpd

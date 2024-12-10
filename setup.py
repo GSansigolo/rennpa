@@ -27,6 +27,7 @@ setup(
         "torch==2.5.1",
         "torcheval==0.0.7",
         "tqdm==4.66.4",
+        "torchvision==0.20.1",
         "scikit-learn==1.5.1",
         "matplotlib==3.9.0",
         "geopandas==1.0.1",
