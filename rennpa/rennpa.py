@@ -180,6 +180,8 @@ def rennpa_dataframe(timeseries, input_csv, indicies, timeseries_file=None):
     B03 = []
     B04 = []
     B08 = []
+    EVI = []
+    NBR = []
     NDVI = []
     if ("OSAVI" in indicies):
         OSAVI = []
@@ -193,6 +195,8 @@ def rennpa_dataframe(timeseries, input_csv, indicies, timeseries_file=None):
         B03.append(row["B03"])
         B04.append(row["B04"])
         B08.append(row["B08"])
+        EVI.append(row["EVI"])
+        NBR.append(row["NBR"])
         NDVI.append(row["NDVI"])  
         if ("OSAVI" in indicies):
             osavi = indicies["OSAVI"][i]
@@ -205,9 +209,9 @@ def rennpa_dataframe(timeseries, input_csv, indicies, timeseries_file=None):
             RECI.append(reci.tolist())
 
     if ("OSAVI" in indicies and "NDWI" in indicies and "RECI" in indicies):
-        df = pd.DataFrame({"B02":B02,"B03":B03,"B04":B04,"B08":B08,"NDVI":NDVI,"OSAVI":OSAVI,"NDWI":NDWI, "RECI": RECI})
+        df = pd.DataFrame({"B02":B02,"B03":B03,"B04":B04,"B08":B08,"NDVI":NDVI,"EVI":EVI,"NBR":NBR,"OSAVI":OSAVI,"NDWI":NDWI, "RECI": RECI})
     else:
-        df = pd.DataFrame({"B02":B02,"B03":B03,"B04":B04,"B08":B08,"NDVI":NDVI})
+        df = pd.DataFrame({"B02":B02,"B03":B03,"B04":B04,"B08":B08,"NDVI":NDVI,"EVI":EVI,"NBR":NBR})
         
     labels_df = pd.read_csv(input_csv)
 
@@ -236,12 +240,14 @@ class TimeseriesDataset():
         item_B04 = self.df.loc[item,"B04"]
         item_B08 = self.df.loc[item,"B08"]
         item_NDVI = self.df.loc[item,"NDVI"]
+        item_EVI = self.df.loc[item,"EVI"]
+        item_NBR = self.df.loc[item,"NBR"]
         item_OSAVI = self.df.loc[item,"OSAVI"]
         item_NDWI = self.df.loc[item,"NDWI"]
         item_RECI = self.df.loc[item,"RECI"]
         item_label = self.df.loc[item,"label"]
                                
-        X_train_tensor = torch.tensor([item_B02,item_B03,item_B04,item_B08,item_NDVI,item_OSAVI,item_NDWI,item_RECI], dtype=torch.float32, device=rennpa_gpu())
+        X_train_tensor = torch.tensor([item_B02,item_B03,item_B04,item_B08,item_NDVI,item_EVI, item_NBR,item_OSAVI,item_NDWI,item_RECI], dtype=torch.float32, device=rennpa_gpu())
         y_train_tensor = torch.tensor(item_label, dtype=torch.long, device=rennpa_gpu()) 
 
         
@@ -451,6 +457,9 @@ def rennpa_classify(cube, points, region, model):
     B04 = []
     B08 = []
     NDVI = []
+    EVI = []
+    NBR = []
+    NDVI = []
     OSAVI = []
     NDWI = []
     RECI = []
@@ -477,6 +486,8 @@ def rennpa_classify(cube, points, region, model):
         B04.append(tss["B04"])
         B08.append(tss["B08"])
         NDVI.append(tss["NDVI"])  
+        EVI.append(tss["EVI"])
+        NBR.append(tss["NBR"])
         osavi = np.divide((np.subtract(tss["B08"],tss["B04"])),(np.add(np.add(tss["B08"],tss["B04"]),[0.16]*23)))
         OSAVI.append(osavi.tolist())
         ndwi = np.divide((np.subtract(tss["B03"],tss["B08"])),(np.add(tss["B03"],tss["B08"])))
@@ -485,7 +496,7 @@ def rennpa_classify(cube, points, region, model):
         RECI.append(reci.tolist())
         label.append(0)
         
-    gleba_df = pd.DataFrame({"GEOM":GEOM,"B02":B02,"B03":B03,"B04":B04,"B08":B08,"NDVI":NDVI,"OSAVI":OSAVI,"NDWI":NDWI, "RECI": RECI, "label": label})
+    gleba_df = pd.DataFrame({"GEOM":GEOM,"B02":B02,"B03":B03,"B04":B04,"B08":B08,"NDVI":NDVI,"EVI":EVI,"NBR":NBR,"OSAVI":OSAVI,"NDWI":NDWI,"RECI": RECI,"label": label})
     
     gleba_ds = TimeseriesDataset(gleba_df) 
 
