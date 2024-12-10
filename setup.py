@@ -24,7 +24,7 @@ setup(
         "pandas==2.2.2",
         "requests==2.32.3",
         "numpy==1.26.0",
-        "torch==2.3.1",
+        "torch==2.5.1",
         "torcheval==0.0.7",
         "torchaudio==2.5.1",
         "torchvision==0.18.1",
