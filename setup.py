@@ -26,7 +26,6 @@ setup(
         "numpy==1.26.0",
         "torch==2.5.1",
         "torcheval==0.0.7",
-        "torchaudio==2.5.1",
         "tqdm==4.66.4",
         "scikit-learn==1.5.1",
         "matplotlib==3.9.0",
